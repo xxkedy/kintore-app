@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>kedy / TRAINING</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="筋トレ">
+<meta name="theme-color" content="#0a0a0c">
+<style>
+  :root{
+    --bg:#0a0a0c;
+    --card:#141419;
+    --card2:#1d1d24;
+    --line:#2c2c35;
+    --text:#fafafa;
+    --sub:#a2a2ad;
+    --accent:#6d5cff;    /* kedy indigo, 明るめ調整 */
+    --accent2:#8a7bff;
+    --dim:#5c5c66;
+    --want:#ffc234;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{background:var(--bg);color:var(--text);
+    font-family:"Helvetica Neue",Helvetica,Arial,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    -webkit-font-smoothing:antialiased;font-size:16px;line-height:1.5}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:620px;margin:0 auto;
+    padding:calc(24px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) calc(48px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left))}
+
+  /* header */
+  .brand{font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--sub)}
+  .h1{font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.05;margin-top:6px}
+  .h1 span{color:var(--accent)}
+  .today{font-size:13px;color:var(--sub);margin-top:8px}
+
+  /* day tabs */
+  .tabs{display:flex;gap:10px;margin:22px 0 14px}
+  .tab{flex:1;padding:18px 14px;border:1.5px solid var(--line);border-radius:14px;background:var(--card);
+    cursor:pointer;text-align:left;transition:.15s;color:var(--text)}
+  .tab .n{font-size:21px;font-weight:800;letter-spacing:-.01em;display:block}
+  .tab .m{font-size:12px;color:var(--sub);margin-top:5px;display:block}
+  .tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent)}
+  .tab[aria-selected="true"] .n,.tab[aria-selected="true"] .m{color:#fff}
+  .tab:focus-visible{outline:2px solid var(--accent2);outline-offset:3px}
+
+  /* meta */
+  .meta{display:flex;gap:10px;margin-bottom:8px}
+  .stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .stat .l{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--sub)}
+  .stat .v{font-size:17px;font-weight:700;margin-top:3px}
+  .stat .v b{color:var(--accent2)}
+
+  /* section heading */
+  .sec{font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--sub);margin:26px 2px 12px}
+
+  /* exercise card */
+  .list{display:flex;flex-direction:column;gap:10px}
+  .ex{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:16px;cursor:pointer;transition:.12s;user-select:none}
+  .ex:hover{border-color:#3a3a45}
+  .ex:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+  .box{width:30px;height:30px;flex:none;border:2px solid #3a3a45;border-radius:9px;position:relative;transition:.12s}
+  .ex .body{flex:1;min-width:0}
+  .name{font-size:18px;font-weight:700;letter-spacing:-.01em}
+  .sub{font-size:13px;color:var(--sub);margin-top:3px}
+  .howto{flex:none;font-size:13px;font-weight:600;color:var(--accent2);border:1.5px solid #34343f;
+    border-radius:10px;padding:9px 13px;transition:.12s;white-space:nowrap}
+  .howto:hover{border-color:var(--accent2);background:rgba(109,92,255,.12)}
+  .howto:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+  /* done state */
+  .ex.on{background:#101014;border-color:#222}
+  .ex.on .box{background:var(--accent);border-color:var(--accent)}
+  .ex.on .box::after{content:"";position:absolute;left:9px;top:3px;width:8px;height:15px;
+    border:solid #fff;border-width:0 3px 3px 0;transform:rotate(45deg)}
+  .ex.on .name{color:var(--dim);text-decoration:line-through}
+  .ex.on .sub{color:var(--dim)}
+
+  .opt{border-style:dashed}
+  .mtag{display:inline-block;font-size:12px;font-weight:800;color:#0a0a0c;border-radius:6px;
+    padding:2px 9px;margin-right:9px;vertical-align:middle}
+  .badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;color:#fff;
+    background:#34343f;border-radius:5px;padding:2px 7px;margin-left:8px;vertical-align:middle}
+  .badge.bar{background:var(--accent);color:#fff}
+  .anat{flex:none;width:32px;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .anat svg{width:30px;height:48px;display:block}
+  .anat .side{font-size:9px;color:var(--sub);letter-spacing:.08em}
+  .care{font-size:11.5px;color:#e8b04b;margin-top:6px;line-height:1.5}
+  .ex.on .care{color:var(--dim)}
+  .wctl{display:flex;align-items:center;gap:8px;margin-top:10px}
+  .wbtn{width:36px;height:36px;border-radius:10px;border:1.5px solid var(--line);background:var(--card2);
+    color:var(--text);font-size:19px;font-weight:700;cursor:pointer;line-height:1}
+  .wbtn:active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .wval{min-width:56px;text-align:center;font-size:18px;font-weight:800;letter-spacing:-.01em}
+  .wval small{font-size:11px;color:var(--sub);margin-left:2px;font-weight:600}
+  .wnote{font-size:10px;color:var(--dim)}
+  .ex.on .wctl{opacity:.35}
+  .note{font-size:12px;color:var(--sub);margin:8px 2px 0;padding-left:12px;border-left:2px solid var(--accent)}
+
+  /* follow-along video */
+  .vid{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:16px;transition:.12s;cursor:pointer}
+  .vid:hover{border-color:var(--accent2);background:var(--card2)}
+  .vid .pl{width:36px;height:36px;flex:none;border-radius:9px;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:14px}
+  .vid .vn{font-size:15px;font-weight:600}
+  .vid .vt{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-top:2px}
+  .want{color:var(--want);font-weight:700;margin-left:6px;font-size:12px}
+
+  /* done button */
+  .done{width:100%;margin-top:26px;padding:19px;border:none;border-radius:14px;background:var(--accent);
+    color:#fff;font-size:16px;font-weight:800;letter-spacing:.04em;cursor:pointer;transition:.15s}
+  .done:hover{background:var(--accent2)}
+  .done:active{transform:scale(.99)}
+  .done:focus-visible{outline:2px solid #fff;outline-offset:3px}
+  .toast{text-align:center;font-size:13px;font-weight:600;color:var(--accent2);margin-top:14px;
+    min-height:18px;opacity:0;transition:.3s}
+  .toast.show{opacity:1}
+
+  .foot{margin-top:30px;font-size:12px;color:var(--dim);text-align:center;line-height:1.8}
+
+  @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">kedy — home training</div>
+  <div class="h1">今日のトレ<span>.</span></div>
+  <div class="today" id="today"></div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-day="push"><span class="n">PUSH日</span><span class="m">胸 · 肩 · 三頭 · 腹</span></button>
+    <button class="tab" role="tab" data-day="pull"><span class="n">PULL日</span><span class="m">背中 · 二頭 · 腹 · 姿勢</span></button>
+  </div>
+
+  <div class="meta">
+    <div class="stat"><div class="l">前回</div><div class="v" id="last">—</div></div>
+    <div class="stat"><div class="l">今週</div><div class="v"><b id="week">0</b> 回</div></div>
+  </div>
+
+  <div class="sec">📋 今日の種目 — タップで完了 ・ ±で重さ ・「解説 ▷」でフォーム動画</div>
+  <div class="list" id="list"></div>
+
+  <div class="sec">🎬 一緒にやる動画 — 流しながらトレ（時間ない日はコレだけでもOK）</div>
+  <div class="list" id="videos"></div>
+
+  <button class="done" id="doneBtn">完了して記録 → 次は逆の日へ</button>
+  <div class="toast" id="toast"></div>
+
+  <div class="foot">
+    重さは前回より少しでも増やせたら勝ち。10回×3が楽になったら上げる。<br>
+    記録はこの端末に保存される。
+  </div>
+</div>
+
+<script>
+/* ===== data ===== */
+const W = {
+  push:{
+    ex:[
+      {n:"ダンベルベンチプレス", m:"胸", mc:"chest", s:"肩前・三頭も ・ 10回×3", w:18, c:"肩甲骨を寄せて胸を張る・肘を開きすぎない", f:"https://youtu.be/pctyhH_HYxc"},
+      {n:"プッシュアップバー腕立て", m:"胸", mc:"chest", s:"三頭も ・ 限界まで×3", c:"体は一直線・深く下ろしすぎて肩を痛めない", f:"https://youtu.be/gOW7hO7TQRg"},
+      {n:"ダンベルショルダープレス", m:"肩", mc:"shoulder", s:"10回×3", w:10, c:"腰を反らない・重さより丁寧さ優先", f:"https://youtu.be/tp9RRXCvnko"},
+      {n:"トライセプスエクステンション", m:"三頭", mc:"triceps", s:"二の腕裏 ・ 10回×3", w:8, c:"肘を固定して開かない", f:"https://youtu.be/z4WI-XdAJBk"},
+      {n:"腹筋ローラー", m:"腹", mc:"abs", s:"お腹全体 ・ 膝コロ10回×3", c:"腰を反らない（反ると腰痛める）・膝コロから", f:"https://youtu.be/Y2ggqVV5Q1A"},
+      {n:"レッグレイズ", m:"腹", mc:"abs", s:"下腹 ・ 15回×3", c:"腰を床から浮かさない・反動を使わない", f:"https://youtu.be/C9xfentB4QA"}
+    ],
+    opt:[
+      {n:"ダンベルフライ", m:"胸", mc:"chest", s:"ストレッチ種目 ・ 12〜15回×3", w:10, tag:"任意", c:"肘は軽く曲げて固定・下ろしすぎない", f:"https://youtu.be/ls-cMaddd-4"},
+      {n:"ディップス", m:"胸", mc:"chest", s:"胸下部・三頭 ・ 限界×3", tag:"腰バー", tagType:"bar", c:"肩をすくめない・沈めすぎない", f:"https://youtu.be/4NtPyLcvigw", note:"腰の高さのバーを掴んで体を沈める。前傾で胸下部、脇を締めて三頭。上半身の高負荷種目"},
+      {n:"ハンギングニーレイズ", m:"腹", mc:"abs", s:"下腹 ・ 15回×3", tag:"腰バー", tagType:"bar", c:"反動を使わずゆっくり", note:"腰バーで体を支え膝を上げる。床レッグレイズと差し替えOK"}
+    ],
+    vid:[
+      {n:"胸 2分 プッシュアップバー", u:"https://youtu.be/ZI7URsS6VrA"},
+      {n:"腹筋 6分 シックスパック", u:"https://youtu.be/yfF-Q2NhVnE", want:1},
+      {n:"腹筋 2分 地獄メニュー", u:"https://youtu.be/R4vb8poJnv0"}
+    ]
+  },
+  pull:{
+    ex:[
+      {n:"懸垂", m:"背中", mc:"back", s:"姿勢に最強 ・ できる回数×3", c:"反動を使わない・肩甲骨から引く", f:"https://youtu.be/leTIONGcVjs", note:"疲れる前の1種目目にやるのがコツ。回数出んくても気にせん、合計回数が増えてけばOK"},
+      {n:"ワンハンドダンベルロウ", m:"背中", mc:"back", s:"二頭も ・ 左右10回×3", w:18, c:"背中を丸めない・腕やなく背中で引く", f:"https://youtu.be/71NcdOwfMv8"},
+      {n:"ダンベルプルオーバー", m:"背中", mc:"back", s:"胸も ・ 10〜15回×3", w:13, u:"両手1個", c:"肘は軽く曲げて固定・重すぎ注意", f:"https://youtu.be/ygxQifjl2pQ"},
+      {n:"シュラッグ", m:"僧帽筋", mc:"traps", s:"首肩 ・ 15回×3", w:18, c:"肩を回さず真上にすくめる", f:"https://youtu.be/nlouGqRR-G8"},
+      {n:"ダンベルカール", m:"二頭", mc:"biceps", s:"力こぶ ・ 10回×3", w:8, c:"肘を体に固定・反動を使わない", f:"https://youtu.be/7sQ5izf39Gs"},
+      {n:"ハンマーカール", m:"二頭", mc:"biceps", s:"前腕も ・ 12回×3", w:8, c:"肘固定・体を振らない", f:"https://youtu.be/R9gZHq9o5b4"},
+      {n:"ロシアンツイスト", m:"腹", mc:"abs", s:"脇腹 ・ 左右20回×3", w:8, u:"両手1個", c:"背中を丸めすぎない・ゆっくり捻る", f:"https://youtu.be/nYnn7WoWFQs"},
+      {n:"背中 自重3分（動画と一緒に）", m:"背中", mc:"back", s:"姿勢の締め ・ 動画1本ぶん", c:"最後のフィニッシャー。動画を流してそのままやる", f:"https://youtu.be/hj2j-RsUiSE"}
+    ],
+    opt:[
+      {n:"斜め懸垂（インバーテッドロウ）", m:"背中", mc:"back", s:"姿勢 ・ 限界×3", tag:"腰バー", tagType:"bar", c:"体は一直線キープ", f:"https://youtu.be/43VhXUG8J-8", note:"懸垂で回数出んかった日の補助に。低いバーの下で体を斜めにして胸を引き寄せる"}
+    ],
+    vid:[
+      {n:"背筋 6分 器具なし（床）", u:"https://youtu.be/Q-LGg-58_ZU"},
+      {n:"腹筋 6分 シックスパック", u:"https://youtu.be/yfF-Q2NhVnE", want:1}
+    ]
+  }
+};
+const NAME={push:"PUSH日",pull:"PULL日"};
+const MC={chest:"#ff5a5f",back:"#4a9eff",traps:"#4a9eff",shoulder:"#ff9f40",triceps:"#b06dff",biceps:"#46d17f",abs:"#2dd4bf"};
+const BACKV={back:1,traps:1,triceps:1};
+function bodySVG(mc){
+  const c=MC[mc]||"#777", sil="#8a8a98";
+  let o="";
+  if(mc==="chest")o=`<ellipse cx="23.5" cy="27" rx="6.3" ry="4.4" fill="${c}"/><ellipse cx="36.5" cy="27" rx="6.3" ry="4.4" fill="${c}"/>`;
+  else if(mc==="shoulder")o=`<circle cx="11.5" cy="24" r="4.6" fill="${c}"/><circle cx="48.5" cy="24" r="4.6" fill="${c}"/>`;
+  else if(mc==="biceps"||mc==="triceps")o=`<ellipse cx="11" cy="34" rx="3.2" ry="6.5" fill="${c}"/><ellipse cx="49" cy="34" rx="3.2" ry="6.5" fill="${c}"/>`;
+  else if(mc==="abs")o=`<rect x="24.5" y="33" width="11" height="15" rx="2.5" fill="${c}"/>`;
+  else if(mc==="back")o=`<path d="M20 25 H40 L35.5 46 Q30 49 24.5 46 Z" fill="${c}"/>`;
+  else if(mc==="traps")o=`<path d="M23 16.5 H37 L45 24 L30 28.5 L15 24 Z" fill="${c}"/>`;
+  return `<svg viewBox="0 0 60 96" aria-hidden="true">
+    <circle cx="30" cy="9" r="6.3" fill="${sil}"/>
+    <rect x="27" y="14.5" width="6" height="4.5" fill="${sil}"/>
+    <path d="M16 19 H44 L41.5 45 Q30 50 18.5 45 Z" fill="${sil}"/>
+    <rect x="19.5" y="46" width="21" height="11" rx="3" fill="${sil}"/>
+    <rect x="7.5" y="20.5" width="7" height="27" rx="3.5" fill="${sil}"/>
+    <rect x="45.5" y="20.5" width="7" height="27" rx="3.5" fill="${sil}"/>
+    <rect x="20.5" y="57" width="8" height="36" rx="3.5" fill="${sil}"/>
+    <rect x="31.5" y="57" width="8" height="36" rx="3.5" fill="${sil}"/>
+    ${o}</svg>`;
+}
+
+/* ===== storage (works locally & hosted; degrades in preview) ===== */
+const mem={};
+const S={get:k=>{try{return localStorage.getItem(k)}catch(e){return k in mem?mem[k]:null}},
+         set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){mem[k]=v}}};
+const gj=(k,d)=>{const v=S.get(k);if(!v)return d;try{return JSON.parse(v)}catch(e){return d}};
+const sj=(k,o)=>S.set(k,JSON.stringify(o));
+
+/* ===== helpers ===== */
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+function monday(){const x=new Date();const k=(x.getDay()+6)%7;x.setHours(0,0,0,0);x.setDate(x.getDate()-k);return x}
+function week(){return gj("k.log",[]).filter(e=>new Date(e.d+"T00:00:00")>=monday()).length}
+
+let day=(S.get("k.last")==="push")?"pull":"push";
+
+/* ===== render ===== */
+function rowEx(e,key,opt){
+  const on=!!gj("k.chk."+day,{})[key];
+  const el=document.createElement("div");
+  el.className="ex"+(opt?" opt":"")+(on?" on":"");
+  el.tabIndex=0; el.setAttribute("role","button"); el.setAttribute("aria-pressed",on);
+  const col=MC[e.mc]||"#555";
+  el.style.borderLeft="4px solid "+col;
+  const ws=gj("k.w",{}); const wv=(ws[e.n]!=null)?ws[e.n]:e.w;
+  el.innerHTML=`<div class="box"></div>
+    <div class="anat">${bodySVG(e.mc)}<span class="side">${BACKV[e.mc]?"後":"前"}</span></div>
+    <div class="body"><div class="name">${e.m?`<span class="mtag" style="background:${col}">${e.m}</span>`:""}${e.n}${e.tag?`<span class="badge${e.tagType==='bar'?' bar':''}">${e.tag}</span>`:""}</div>
+    <div class="sub">${e.s}</div>
+    ${e.c?`<div class="care">⚠ ${e.c}</div>`:""}
+    ${e.w!=null?`<div class="wctl"><button class="wbtn" data-op="-" aria-label="重さを減らす">−</button><span class="wval"><span class="wnum">${wv}</span><small>kg</small></span><button class="wbtn" data-op="+" aria-label="重さを増やす">＋</button><span class="wnote">${e.u||"片手"}</span></div>`:""}
+    </div>
+    ${e.f?`<a class="howto" href="${e.f}" target="_blank" rel="noopener">解説 ▷</a>`:""}`;
+  const toggle=()=>{const c=gj("k.chk."+day,{});c[key]=!c[key];sj("k.chk."+day,c);
+    el.classList.toggle("on",c[key]);el.setAttribute("aria-pressed",c[key]);};
+  el.addEventListener("click",ev=>{if(ev.target.closest(".howto")||ev.target.closest(".wctl"))return;toggle();});
+  const wc=el.querySelector(".wctl");
+  if(wc){wc.addEventListener("click",ev=>{ev.stopPropagation();
+    const b=ev.target.closest(".wbtn");if(!b)return;
+    const m=gj("k.w",{});let v=(m[e.n]!=null)?m[e.n]:e.w;
+    v=Math.max(1,v+(b.dataset.op==="+"?1:-1));m[e.n]=v;sj("k.w",m);
+    el.querySelector(".wnum").textContent=v;});}
+  el.addEventListener("keydown",ev=>{if(ev.target===el&&(ev.key===" "||ev.key==="Enter")){ev.preventDefault();toggle();}});
+  el.querySelector(".howto").addEventListener("click",ev=>ev.stopPropagation());
+  return el;
+}
+function render(){
+  document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.day===day));
+  const w=W[day], list=document.getElementById("list");
+  list.innerHTML="";
+  w.ex.forEach((e,i)=>list.appendChild(rowEx(e,"e"+i,false)));
+  w.opt.forEach((e,i)=>{list.appendChild(rowEx(e,"o"+i,true));
+    if(e.note){const n=document.createElement("div");n.className="note";n.textContent=e.note;list.appendChild(n);}});
+  const vids=document.getElementById("videos");
+  vids.innerHTML="";
+  w.vid.forEach(v=>{const a=document.createElement("a");a.className="vid";a.href=v.u;a.target="_blank";a.rel="noopener";
+    a.innerHTML=`<div class="pl">▶</div><div><div class="vn">${v.n}${v.want?'<span class="want">★やりたい</span>':""}</div><div class="vt">YouTube</div></div>`;
+    vids.appendChild(a);});
+  const last=S.get("k.last"), ld=S.get("k.lastDate");
+  document.getElementById("last").innerHTML=last?NAME[last]+(ld?` <span style="color:var(--sub);font-weight:400">${ld.slice(5)}</span>`:""):"—";
+  document.getElementById("week").textContent=week();
+}
+
+/* ===== events ===== */
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{day=t.dataset.day;render();}));
+document.getElementById("doneBtn").addEventListener("click",()=>{
+  const log=gj("k.log",[]);log.push({d:today(),day});sj("k.log",log);
+  S.set("k.last",day);S.set("k.lastDate",today());sj("k.chk."+day,{});
+  const done=NAME[day],wk=week();
+  day=(day==="push")?"pull":"push";render();
+  const t=document.getElementById("toast");
+  t.textContent=`${done} 記録した ✓  今週${wk}回  →  次は${NAME[day]}`;
+  t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3400);
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+
+/* ===== init ===== */
+(function(){const d=new Date();const wd=["日","月","火","水","木","金","土"][d.getDay()];
+  document.getElementById("today").textContent=today().replace(/-/g,".")+`（${wd}）`;render();})();
+</script>
+</body>
+</html>
