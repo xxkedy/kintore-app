@@ -48,6 +48,9 @@
   .tab[aria-selected="true"] .n,.tab[aria-selected="true"] .m{color:#fff}
   .tab[data-day="light"][aria-selected="true"]{background:#2f9e63;border-color:#2f9e63}
   .tab:focus-visible{outline:2px solid var(--accent2);outline-offset:3px}
+  .rec{display:none;font-size:9px;font-weight:700;letter-spacing:.06em;color:#fff;background:var(--accent2);
+    border-radius:5px;padding:2px 6px;margin-left:6px;vertical-align:2px}
+  .tab[aria-selected="true"] .rec{background:rgba(255,255,255,.28)}
 
   /* meta */
   .meta{display:flex;gap:10px;margin-bottom:8px}
@@ -164,14 +167,14 @@
   <div class="today" id="today"></div>
 
   <div class="tabs" role="tablist">
-    <button class="tab" role="tab" data-day="push"><span class="n">PUSH日</span><span class="m">胸·肩·三頭·腹</span></button>
-    <button class="tab" role="tab" data-day="pull"><span class="n">PULL日</span><span class="m">背中·二頭·腹</span></button>
-    <button class="tab" role="tab" data-day="light"><span class="n">軽め</span><span class="m">筋肉痛の日</span></button>
+    <button class="tab" role="tab" data-day="push"><span class="n">PUSH日<span class="rec">おすすめ</span></span><span class="m">胸·肩·三頭·腹</span></button>
+    <button class="tab" role="tab" data-day="pull"><span class="n">PULL日<span class="rec">おすすめ</span></span><span class="m">背中·二頭·腹</span></button>
+    <button class="tab" role="tab" data-day="light"><span class="n">軽め<span class="rec">おすすめ</span></span><span class="m">筋肉痛の日</span></button>
   </div>
 
   <div class="meta">
     <div class="stat"><div class="l">前回</div><div class="v" id="last">—</div></div>
-    <div class="stat"><div class="l">今週</div><div class="v"><b id="week">0</b> 回</div></div>
+    <div class="stat"><div class="l">今週</div><div class="v"><b id="week">0</b> 日</div></div>
   </div>
 
   <div class="cal">
@@ -189,18 +192,17 @@
     </div>
   </div>
 
-  <div class="sec">📋 今日の種目 — タップで完了 ・ ±で重さ ・「解説 ▷」でフォーム動画</div>
+  <div class="sec">📋 今日の種目 — タップした瞬間に自動で記録 ・ ±で重さ ・ 解説 ▷</div>
   <div class="list" id="list"></div>
 
   <div class="sec" id="vidSec">🎬 一緒にやる動画 — 流しながらトレ（時間ない日はコレだけでもOK）</div>
   <div class="list" id="videos"></div>
 
-  <button class="done" id="doneBtn">完了して記録 → 次は逆の日へ</button>
   <div class="toast" id="toast"></div>
 
   <div class="foot">
-    重さは前回より少しでも増やせたら勝ち。10回×3が楽になったら上げる。<br>
-    記録はこの端末に保存される。
+    チェックした瞬間に自動保存。完了ボタンは無し＝押し忘れゼロ。<br>
+    重さは前回より少しでも増やせたら勝ち。記録はこの端末に保存される。
   </div>
 </div>
 
@@ -294,13 +296,45 @@ const sj=(k,o)=>S.set(k,JSON.stringify(o));
 /* ===== helpers ===== */
 const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 function monday(){const x=new Date();const k=(x.getDay()+6)%7;x.setHours(0,0,0,0);x.setDate(x.getDate()-k);return x}
-function week(){return gj("k.log",[]).filter(e=>new Date(e.d+"T00:00:00")>=monday()).length}
+const DAYS=()=>gj("k.days",{});
+const anyChk=c=>!!c&&Object.values(c).some(v=>v);
+function exCnt(dy,c){return W[dy].ex.reduce((a,_,i)=>a+(c&&c["e"+i]?1:0),0)}
+/* level: 0=none 1=partial 2=full(all main exercises) */
+function lvOf(dy,c){if(!anyChk(c))return 0;return exCnt(dy,c)>=W[dy].ex.length?2:1}
+function dayMap(){
+  const map={};
+  gj("k.log",[]).forEach(e=>{                 /* old finalized records (pre-v5) */
+    const lv=(e.tt!=null&&e.tt>0&&e.dn<e.tt)?1:2;
+    const m=map[e.d]=map[e.d]||{};
+    m[e.day]=Math.max(m[e.day]||0,lv);
+  });
+  const ds=DAYS();                            /* new auto-saved checks */
+  Object.keys(ds).forEach(d=>{
+    ["push","pull","light"].forEach(k=>{
+      const lv=lvOf(k,ds[d][k]);
+      if(lv){const m=map[d]=map[d]||{};m[k]=Math.max(m[k]||0,lv);}
+    });
+  });
+  return map;
+}
+function week(){const m=dayMap(),mon=monday();return Object.keys(m).filter(d=>new Date(d+"T00:00:00")>=mon).length}
+function lastInfo(){const m=dayMap();const ds=Object.keys(m).sort();if(!ds.length)return null;
+  const d=ds[ds.length-1],t=m[d];return {d,k:(t.push?"push":t.pull?"pull":"light")};}
+function suggest(){
+  const td=DAYS()[today()];
+  if(td){const k=["push","pull","light"].find(x=>anyChk(td[x]));if(k)return k;}
+  const m=dayMap();const ds=Object.keys(m).sort();
+  for(let i=ds.length-1;i>=0;i--){const t=m[ds[i]];if(t.push)return"pull";if(t.pull)return"push";}
+  return"push";
+}
+function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;
+  t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3400);}
 
-let day=(S.get("k.last")==="push")?"pull":"push";
+let day="push";
 
 /* ===== render ===== */
 function rowEx(e,key,opt){
-  const on=!!gj("k.chk."+day,{})[key];
+  const on=!!(((DAYS()[today()]||{})[day])||{})[key];
   const el=document.createElement("div");
   el.className="ex"+(opt?" opt":"")+(on?" on":"");
   el.tabIndex=0; el.setAttribute("role","button"); el.setAttribute("aria-pressed",on);
@@ -315,8 +349,16 @@ function rowEx(e,key,opt){
     ${e.w!=null?`<div class="wctl"><button class="wbtn" data-op="-" aria-label="重さを減らす">−</button><span class="wval"><span class="wnum">${wv}</span><small>kg</small></span><button class="wbtn" data-op="+" aria-label="重さを増やす">＋</button><span class="wnote">${e.u||"片手"}</span></div>`:""}
     </div>
     ${e.f?`<a class="howto" href="${e.f}" target="_blank" rel="noopener">解説 ▷</a>`:""}`;
-  const toggle=()=>{const c=gj("k.chk."+day,{});c[key]=!c[key];sj("k.chk."+day,c);
-    el.classList.toggle("on",c[key]);el.setAttribute("aria-pressed",c[key]);};
+  const toggle=()=>{
+    const ds=DAYS(),td=today();
+    ds[td]=ds[td]||{};const c=ds[td][day]=ds[td][day]||{};
+    const before=lvOf(day,c);
+    c[key]=!c[key];sj("k.days",ds);
+    el.classList.toggle("on",c[key]);el.setAttribute("aria-pressed",!!c[key]);
+    document.getElementById("week").textContent=week();
+    renderCal();
+    if(before<2&&lvOf(day,c)===2)showToast(`${NAME[day]} 全種目クリア ✓  今週${week()}日目`);
+  };
   el.addEventListener("click",ev=>{if(ev.target.closest(".howto")||ev.target.closest(".wctl"))return;toggle();});
   const wc=el.querySelector(".wctl");
   if(wc){wc.addEventListener("click",ev=>{ev.stopPropagation();
@@ -343,41 +385,21 @@ function render(){
     vids.appendChild(a);});
   const vs=document.getElementById("vidSec");
   vs.style.display=w.vid.length?"":"none";vids.style.display=w.vid.length?"":"none";
-  document.getElementById("doneBtn").textContent=(day==="light")?"軽めの日として記録（サボりじゃない）":"完了して記録 → 次は逆の日へ";
-  const last=S.get("k.last"), ld=S.get("k.lastDate");
-  document.getElementById("last").innerHTML=last?NAME[last]+(ld?` <span style="color:var(--sub);font-weight:400">${ld.slice(5)}</span>`:""):"—";
+  const rec=suggest();
+  document.querySelectorAll(".tab .rec").forEach(r=>{r.style.display=(r.closest(".tab").dataset.day===rec)?"":"none";});
+  const li=lastInfo();
+  document.getElementById("last").innerHTML=li?NAME[li.k]+` <span style="color:var(--sub);font-weight:400">${li.d.slice(5)}</span>`:"—";
   document.getElementById("week").textContent=week();
 }
 
 /* ===== events ===== */
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{day=t.dataset.day;render();}));
-document.getElementById("doneBtn").addEventListener("click",()=>{
-  const checks=gj("k.chk."+day,{});
-  const tt=W[day].ex.length;
-  const dn=W[day].ex.reduce((a,_,i)=>a+(checks["e"+i]?1:0),0);
-  const log=gj("k.log",[]);log.push({d:today(),day,dn,tt});sj("k.log",log);
-  const wasLight=(day==="light");
-  if(!wasLight){S.set("k.last",day);S.set("k.lastDate",today());}
-  sj("k.chk."+day,{});
-  const done=NAME[day],wk=week();
-  day=wasLight?((S.get("k.last")==="push")?"pull":"push"):((day==="push")?"pull":"push");
-  render();renderCal();
-  const t=document.getElementById("toast");
-  t.textContent=wasLight?`${done} 記録した ✓  今週${wk}回  — ゼロじゃないのが偉い`:`${done} 記録した ✓  今週${wk}回  →  次は${NAME[day]}`;
-  t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3400);
-  window.scrollTo({top:0,behavior:"smooth"});
-});
 
 /* ===== calendar ===== */
 let calY,calM;
 function renderCal(){
   document.getElementById("calTitle").textContent=`${calY}年${calM+1}月`;
-  const log=gj("k.log",[]),map={};
-  log.forEach(e=>{
-    const lv=(e.tt!=null&&e.tt>0&&e.dn<e.tt)?1:2;
-    const m=map[e.d]=map[e.d]||{};
-    m[e.day]=Math.max(m[e.day]||0,lv);
-  });
+  const map=dayMap();
   const dows=["月","火","水","木","金","土","日"];
   let html=dows.map((x,i)=>`<div class="cal-dow${i===5?" sat":i===6?" sun":""}">${x}</div>`).join("");
   const first=(new Date(calY,calM,1).getDay()+6)%7;
@@ -401,9 +423,18 @@ document.getElementById("calPrev").addEventListener("click",()=>{calM--;if(calM<
 document.getElementById("calNext").addEventListener("click",()=>{calM++;if(calM>11){calM=0;calY++;}renderCal();});
 
 /* ===== init ===== */
-(function(){const d=new Date();const wd=["日","月","火","水","木","金","土"][d.getDay()];
+(function(){
+  /* migrate: old per-tab checks (pre auto-save) -> today's record */
+  const ds=DAYS();let mig=false;
+  ["push","pull","light"].forEach(k=>{
+    const c=gj("k.chk."+k,{});
+    if(anyChk(c)){const td=today();ds[td]=ds[td]||{};ds[td][k]=Object.assign({},c,ds[td][k]||{});sj("k.chk."+k,{});mig=true;}
+  });
+  if(mig)sj("k.days",ds);
+  const d=new Date();const wd=["日","月","火","水","木","金","土"][d.getDay()];
   document.getElementById("today").textContent=today().replace(/-/g,".")+`（${wd}）`;
   calY=d.getFullYear();calM=d.getMonth();
+  day=suggest();
   render();renderCal();})();
 </script>
 </body>
