@@ -74,6 +74,9 @@
   .cal-cell.done.push{background:#6d5cff}
   .cal-cell.done.pull{background:#3d8fe0}
   .cal-cell.done.light{background:#2f9e63}
+  .cal-cell.done.push.pt{background:rgba(109,92,255,.34)}
+  .cal-cell.done.pull.pt{background:rgba(61,143,224,.34)}
+  .cal-cell.done.light.pt{background:rgba(47,158,99,.38)}
   .cal-cell.today{border:1.5px solid var(--accent2);font-weight:800}
   .cal-cell.done.today{border-color:#fff}
   .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
@@ -182,7 +185,7 @@
       <span><i class="dot push"></i>PUSH</span>
       <span><i class="dot pull"></i>PULL</span>
       <span><i class="dot light"></i>軽め</span>
-      <span style="color:var(--dim)">色付き = やった日 / 空白 = やってない日</span>
+      <span style="color:var(--dim)">濃い = 全種目 ・ 薄い = 一部だけ ・ 空白 = やってない</span>
     </div>
   </div>
 
@@ -349,7 +352,10 @@ function render(){
 /* ===== events ===== */
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{day=t.dataset.day;render();}));
 document.getElementById("doneBtn").addEventListener("click",()=>{
-  const log=gj("k.log",[]);log.push({d:today(),day});sj("k.log",log);
+  const checks=gj("k.chk."+day,{});
+  const tt=W[day].ex.length;
+  const dn=W[day].ex.reduce((a,_,i)=>a+(checks["e"+i]?1:0),0);
+  const log=gj("k.log",[]);log.push({d:today(),day,dn,tt});sj("k.log",log);
   const wasLight=(day==="light");
   if(!wasLight){S.set("k.last",day);S.set("k.lastDate",today());}
   sj("k.chk."+day,{});
@@ -367,7 +373,11 @@ let calY,calM;
 function renderCal(){
   document.getElementById("calTitle").textContent=`${calY}年${calM+1}月`;
   const log=gj("k.log",[]),map={};
-  log.forEach(e=>{(map[e.d]=map[e.d]||{})[e.day]=1;});
+  log.forEach(e=>{
+    const lv=(e.tt!=null&&e.tt>0&&e.dn<e.tt)?1:2;
+    const m=map[e.d]=map[e.d]||{};
+    m[e.day]=Math.max(m[e.day]||0,lv);
+  });
   const dows=["月","火","水","木","金","土","日"];
   let html=dows.map((x,i)=>`<div class="cal-dow${i===5?" sat":i===6?" sun":""}">${x}</div>`).join("");
   const first=(new Date(calY,calM,1).getDay()+6)%7;
@@ -381,7 +391,7 @@ function renderCal(){
     const dow=new Date(calY,calM,d).getDay();
     let cls="cal-cell";
     if(dow===6)cls+=" sat";else if(dow===0)cls+=" sun";
-    if(kind)cls+=" done "+kind;
+    if(kind)cls+=" done "+kind+(t[kind]===1?" pt":"");
     if(key===td)cls+=" today";
     html+=`<div class="${cls}">${d}</div>`;
   }
