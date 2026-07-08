@@ -82,8 +82,8 @@
   .cal-cell.done.push.pt{background:rgba(109,92,255,.34)}
   .cal-cell.done.pull.pt{background:rgba(61,143,224,.34)}
   .cal-cell.done.light.pt{background:rgba(47,158,99,.38)}
-  .cal-cell.today{border:1.5px solid var(--accent2);font-weight:800}
-  .cal-cell.done.today{border-color:#fff}
+  .cal-cell.today{box-shadow:inset 0 0 0 1.5px var(--accent2);font-weight:800}
+  .cal-cell.done.today{box-shadow:inset 0 0 0 1.5px #fff}
   .cal-cell.tap{cursor:pointer}
   .cal-cell.tap:active{background:var(--card2)}
   .cal-cell.done.tap:active{filter:brightness(1.25)}
@@ -221,7 +221,7 @@
 <body>
 <div class="wrap">
   <div class="brand">kedy — home training</div>
-  <div class="h1">今日のトレ<span>.</span></div>
+  <div class="h1">WORKOUT<span>.</span></div>
   <div class="today" id="today"></div>
 
   <div class="tabs" role="tablist">
@@ -251,7 +251,7 @@
     <div class="cal-hint">📅 過去の日をタップ → PUSH / PULL / 軽め を後から記録できる</div>
   </div>
 
-  <div class="sec">📋 今日の種目 — タップで自動記録 ・ ±で重さ ・ ⏱で休憩 ・ ▶で動画をその場再生</div>
+  <div class="sec" id="secTtl"></div>
   <div class="list" id="list"></div>
 
   <div class="sec" id="vidSec">🎬 一緒にやる動画 — 流しながらトレ（時間ない日はコレだけでもOK）</div>
@@ -262,7 +262,7 @@
   <div class="foot">
     チェックした瞬間に自動保存。完了ボタンは無し＝押し忘れゼロ。<br>
     重さは前回より少しでも増やせたら勝ち。記録はこの端末に保存される。
-    <div class="ver">kedy training · v8</div>
+    <div class="ver">kedy training · v9</div>
   </div>
 </div>
 
@@ -286,6 +286,7 @@
 /* ===== data ===== */
 const W = {
   push:{
+    goal:4,
     ex:[
       {n:"プッシュアップバー腕立て", m:"胸", mc:"chest", s:"三頭も ・ 限界まで×3", c:"体は一直線・深く下ろしすぎて肩を痛めない", f:"https://youtu.be/gOW7hO7TQRg"},
       {n:"レッグレイズ", m:"腹", mc:"abs", s:"下腹 ・ 15回×3", c:"腰を床から浮かさない・反動を使わない", f:"https://youtu.be/C9xfentB4QA"},
@@ -297,15 +298,15 @@ const W = {
     opt:[
       {n:"ダンベルフライ", m:"胸", mc:"chest", s:"ストレッチ種目 ・ 12〜15回×3", w:10, timer:true, tag:"任意", c:"肘は軽く曲げて固定・下ろしすぎない", f:"https://youtu.be/ls-cMaddd-4"},
       {n:"ディップス", m:"胸", mc:"chest", s:"胸下部・三頭 ・ 限界×3", tag:"腰バー", tagType:"bar", c:"肩をすくめない・沈めすぎない", f:"https://youtu.be/4NtPyLcvigw", note:"腰の高さのバーを掴んで体を沈める。前傾で胸下部、脇を締めて三頭。上半身の高負荷種目"},
-      {n:"ハンギングニーレイズ", m:"腹", mc:"abs", s:"下腹 ・ 15回×3", tag:"腰バー", tagType:"bar", c:"反動を使わずゆっくり", note:"腰バーで体を支え膝を上げる。床レッグレイズと差し替えOK"}
+      {n:"ハンギングニーレイズ", m:"腹", mc:"abs", s:"下腹 ・ 15回×3", tag:"腰バー", tagType:"bar", c:"反動を使わずゆっくり・体幹を固めて揺れない", f:"https://youtu.be/7bVKRM8GkdI", note:"腰バーで体を支え膝を上げる。床レッグレイズと差し替えOK"}
     ],
     vid:[
       {n:"胸 2分 プッシュアップバー", u:"https://youtu.be/ZI7URsS6VrA"},
-      {n:"腹筋 6分 シックスパック", u:"https://youtu.be/yfF-Q2NhVnE", want:1},
       {n:"腹筋 2分 地獄メニュー", u:"https://youtu.be/R4vb8poJnv0"}
     ]
   },
   pull:{
+    goal:5,
     ex:[
       {n:"懸垂", m:"背中", mc:"back", s:"姿勢に最強 ・ できる回数×3", posture:true, c:"反動を使わない・肩甲骨から引く", f:"https://youtu.be/leTIONGcVjs", note:"疲れる前の1種目目にやるのがコツ。回数出んくても気にせん、合計回数が増えてけばOK"},
       {n:"ロシアンツイスト", m:"腹", mc:"abs", s:"脇腹 ・ 左右20回×3", w:8, u:"両手1個", c:"背中を丸めすぎない・ゆっくり捻る", f:"https://youtu.be/nYnn7WoWFQs"},
@@ -326,6 +327,7 @@ const W = {
     ]
   },
   light:{
+    goal:2,
     ex:[
       {n:"腹筋 6分（動画と一緒に）", m:"腹", mc:"abs", s:"動画1本ぶん・これだけでも十分", c:"できるやつだけでOK。全部やらんでいい", f:"https://youtu.be/yfF-Q2NhVnE"},
       {n:"腹筋 2分 地獄メニュー", m:"腹", mc:"abs", s:"時間ない日はこっち", f:"https://youtu.be/R4vb8poJnv0"},
@@ -372,6 +374,7 @@ const gj=(k,d)=>{const v=S.get(k);if(!v)return d;try{return JSON.parse(v)}catch(
 const sj=(k,o)=>S.set(k,JSON.stringify(o));
 
 /* ===== helpers ===== */
+const HOLIDAYS=new Set(["2026-01-01","2026-01-12","2026-02-11","2026-02-23","2026-03-20","2026-04-29","2026-05-03","2026-05-04","2026-05-05","2026-05-06","2026-07-20","2026-08-11","2026-09-21","2026-09-22","2026-09-23","2026-10-12","2026-11-03","2026-11-23","2027-01-01","2027-01-11","2027-02-11","2027-02-23","2027-03-21","2027-03-22","2027-04-29","2027-05-03","2027-05-04","2027-05-05","2027-07-19","2027-08-11","2027-09-20","2027-09-23","2027-10-11","2027-11-03","2027-11-23"]);
 const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 function monday(){const x=new Date();const k=(x.getDay()+6)%7;x.setHours(0,0,0,0);x.setDate(x.getDate()-k);return x}
 const DAYS=()=>gj("k.days",{});
@@ -531,6 +534,7 @@ function render(){
   closeEmbed();clearTimer();
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.day===day));
   const w=W[day], list=document.getElementById("list");
+  document.getElementById("secTtl").innerHTML=`📋 種目 — この中から <b style="color:var(--text)">${w.goal}種目</b> できたら十分 ・ 全部やらんでOK ・ ±重さ ⏱休憩 ▶動画`;
   list.innerHTML="";
   w.ex.forEach((e,i)=>list.appendChild(rowEx(e,"e"+i,false)));
   w.opt.forEach((e,i)=>{list.appendChild(rowEx(e,"o"+i,true));
@@ -570,7 +574,7 @@ function renderCal(){
     const kind=t?(t.push?"push":t.pull?"pull":"light"):"";
     const dow=new Date(calY,calM,d).getDay();
     let cls="cal-cell";
-    if(dow===6)cls+=" sat";else if(dow===0)cls+=" sun";
+    if(HOLIDAYS.has(key))cls+=" sun";else if(dow===6)cls+=" sat";else if(dow===0)cls+=" sun";
     if(kind)cls+=" done "+kind+(t[kind]===1?" pt":"");
     if(key===td)cls+=" today";
     const tappable=key<=td;
