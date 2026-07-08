@@ -23,6 +23,8 @@
     --accent2:#8a7bff;
     --dim:#5c5c66;
     --want:#ffc234;
+    --amber:#ffc234;     /* timer */
+    --pose:#46d17f;      /* 姿勢バッジ */
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{background:var(--bg);color:var(--text);
@@ -82,12 +84,16 @@
   .cal-cell.done.light.pt{background:rgba(47,158,99,.38)}
   .cal-cell.today{border:1.5px solid var(--accent2);font-weight:800}
   .cal-cell.done.today{border-color:#fff}
+  .cal-cell.tap{cursor:pointer}
+  .cal-cell.tap:active{background:var(--card2)}
+  .cal-cell.done.tap:active{filter:brightness(1.25)}
   .dot{width:6px;height:6px;border-radius:50%;display:inline-block}
   .dot.push{background:#6d5cff}
   .dot.pull{background:#3d8fe0}
   .dot.light{background:#2f9e63}
   .cal-leg{display:flex;gap:12px;flex-wrap:wrap;font-size:10.5px;color:var(--sub);margin-top:12px;align-items:center}
   .cal-leg span{display:inline-flex;align-items:center;gap:4px}
+  .cal-hint{font-size:10.5px;color:var(--dim);margin-top:8px}
 
   /* section heading */
   .sec{font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--sub);margin:26px 2px 12px}
@@ -103,9 +109,11 @@
   .name{font-size:18px;font-weight:700;letter-spacing:-.01em}
   .sub{font-size:13px;color:var(--sub);margin-top:3px}
   .howto{flex:none;font-size:13px;font-weight:600;color:var(--accent2);border:1.5px solid #34343f;
-    border-radius:10px;padding:9px 13px;transition:.12s;white-space:nowrap}
+    border-radius:10px;padding:9px 13px;transition:.12s;white-space:nowrap;background:transparent;
+    font-family:inherit;cursor:pointer;line-height:1.3}
   .howto:hover{border-color:var(--accent2);background:rgba(109,92,255,.12)}
   .howto:focus-visible{outline:2px solid var(--accent2);outline-offset:2px}
+  .howto.playing{color:#fff;background:var(--accent);border-color:var(--accent)}
   /* done state */
   .ex.on{background:#101014;border-color:#222}
   .ex.on .box{background:var(--accent);border-color:var(--accent)}
@@ -120,30 +128,59 @@
   .badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.08em;color:#fff;
     background:#34343f;border-radius:5px;padding:2px 7px;margin-left:8px;vertical-align:middle}
   .badge.bar{background:var(--accent);color:#fff}
+  .badge.pose{background:var(--pose);color:#06210f}
   .anat{flex:none;width:32px;display:flex;flex-direction:column;align-items:center;gap:2px}
   .anat svg{width:30px;height:48px;display:block}
   .anat .side{font-size:9px;color:var(--sub);letter-spacing:.08em}
   .care{font-size:11.5px;color:#e8b04b;margin-top:6px;line-height:1.5}
   .ex.on .care{color:var(--dim)}
-  .wctl{display:flex;align-items:center;gap:8px;margin-top:10px}
+  .wctl{display:flex;align-items:center;gap:8px;margin-top:10px;flex-wrap:wrap}
   .wbtn{width:36px;height:36px;border-radius:10px;border:1.5px solid var(--line);background:var(--card2);
     color:var(--text);font-size:19px;font-weight:700;cursor:pointer;line-height:1}
   .wbtn:active{background:var(--accent);border-color:var(--accent);color:#fff}
   .wval{min-width:56px;text-align:center;font-size:18px;font-weight:800;letter-spacing:-.01em}
   .wval small{font-size:11px;color:var(--sub);margin-left:2px;font-weight:600}
   .wnote{font-size:10px;color:var(--dim)}
+  .tbtn{height:36px;border-radius:10px;border:1.5px solid #4a3f16;background:#241f0d;color:var(--amber);
+    font-size:14px;font-weight:700;cursor:pointer;line-height:1;padding:0 12px;display:inline-flex;align-items:center;gap:5px}
+  .tbtn:active{background:var(--amber);border-color:var(--amber);color:#241f0d}
   .ex.on .wctl{opacity:.35}
   .note{font-size:12px;color:var(--sub);margin:8px 2px 0;padding-left:12px;border-left:2px solid var(--accent)}
 
-  /* follow-along video */
+  /* timer zone */
+  .tzone{margin-top:10px}
+  .tzone:empty{display:none}
+  .tchips{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .tlbl{font-size:12px;color:var(--sub);font-weight:700}
+  .tchip{border:1.5px solid #4a3f16;background:#241f0d;color:var(--amber);border-radius:9px;
+    padding:8px 13px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit}
+  .tchip:active{background:var(--amber);color:#241f0d}
+  .tchip.x{border-color:var(--line);background:var(--card2);color:var(--sub);font-weight:600}
+  .trun{display:flex;align-items:center;gap:14px;background:#241f0d;border:1.5px solid var(--amber);
+    border-radius:12px;padding:11px 15px}
+  .tnum{font-size:26px;font-weight:800;color:var(--amber);letter-spacing:.02em;font-variant-numeric:tabular-nums;min-width:66px}
+  .tstop{margin-left:auto;border:1.5px solid var(--line);background:var(--card2);color:var(--sub);
+    border-radius:9px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+  .tdone{display:flex;align-items:center;gap:12px;background:#0f2a17;border:1.5px solid var(--pose);
+    border-radius:12px;padding:11px 15px;font-size:14px;font-weight:800;color:var(--pose)}
+  .tnext{margin-left:auto;border:none;background:var(--pose);color:#06210f;border-radius:9px;
+    padding:8px 14px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit}
+
+  /* follow-along video (list) */
   .vid{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);
     border-radius:14px;padding:16px;transition:.12s;cursor:pointer}
   .vid:hover{border-color:var(--accent2);background:var(--card2)}
+  .vid.playing{border-color:var(--accent);background:var(--card2)}
   .vid .pl{width:36px;height:36px;flex:none;border-radius:9px;background:var(--accent);color:#fff;
     display:flex;align-items:center;justify-content:center;font-size:14px}
   .vid .vn{font-size:15px;font-weight:600}
   .vid .vt{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-top:2px}
   .want{color:var(--want);font-weight:700;margin-left:6px;font-size:12px}
+
+  /* inline embed */
+  .embed{margin-top:-2px;border-radius:14px;overflow:hidden;border:1px solid var(--accent);
+    background:#000;aspect-ratio:16/9}
+  .embed iframe{width:100%;height:100%;display:block;border:0}
 
   /* done button */
   .done{width:100%;margin-top:26px;padding:19px;border:none;border-radius:14px;background:var(--accent);
@@ -156,6 +193,27 @@
   .toast.show{opacity:1}
 
   .foot{margin-top:30px;font-size:12px;color:var(--dim);text-align:center;line-height:1.8}
+  .foot .ver{font-size:10px;letter-spacing:.2em;color:#3a3a45}
+
+  /* bottom sheet (calendar input) */
+  .sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;
+    transition:.2s;z-index:40}
+  .sheet-bg.show{opacity:1;pointer-events:auto}
+  .sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;transform:translateY(110%);transition:.24s;
+    padding:0 12px calc(18px + env(safe-area-inset-bottom))}
+  .sheet.show{transform:translateY(0)}
+  .sheet-card{max-width:520px;margin:0 auto;background:var(--card);border:1px solid var(--line);
+    border-radius:18px 18px 14px 14px;padding:18px 16px}
+  .sheet-ttl{font-size:15px;font-weight:800;text-align:center;margin-bottom:4px}
+  .sheet-sub{font-size:12px;color:var(--sub);text-align:center;margin-bottom:14px}
+  .sheet-row{display:flex;gap:8px}
+  .sbtn{flex:1;border:none;border-radius:12px;padding:15px 6px;font-size:15px;font-weight:800;
+    cursor:pointer;color:#fff;font-family:inherit}
+  .sbtn.push{background:#6d5cff}
+  .sbtn.pull{background:#3d8fe0}
+  .sbtn.light{background:#2f9e63}
+  .sbtn.clear{background:var(--card2);color:var(--sub);border:1.5px solid var(--line);margin-top:8px;width:100%}
+  .sbtn.close{background:none;color:var(--dim);margin-top:6px;width:100%;font-size:13px;font-weight:600}
 
   @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
@@ -190,9 +248,10 @@
       <span><i class="dot light"></i>軽め</span>
       <span style="color:var(--dim)">濃い = 全種目 ・ 薄い = 一部だけ ・ 空白 = やってない</span>
     </div>
+    <div class="cal-hint">📅 過去の日をタップ → PUSH / PULL / 軽め を後から記録できる</div>
   </div>
 
-  <div class="sec">📋 今日の種目 — タップした瞬間に自動で記録 ・ ±で重さ ・ 解説 ▷</div>
+  <div class="sec">📋 今日の種目 — タップで自動記録 ・ ±で重さ ・ ⏱で休憩 ・ ▶で動画をその場再生</div>
   <div class="list" id="list"></div>
 
   <div class="sec" id="vidSec">🎬 一緒にやる動画 — 流しながらトレ（時間ない日はコレだけでもOK）</div>
@@ -203,6 +262,23 @@
   <div class="foot">
     チェックした瞬間に自動保存。完了ボタンは無し＝押し忘れゼロ。<br>
     重さは前回より少しでも増やせたら勝ち。記録はこの端末に保存される。
+    <div class="ver">kedy training · v8</div>
+  </div>
+</div>
+
+<!-- calendar input sheet -->
+<div class="sheet-bg" id="sheetBg"></div>
+<div class="sheet" id="sheet">
+  <div class="sheet-card">
+    <div class="sheet-ttl" id="sheetTtl"></div>
+    <div class="sheet-sub">この日にやったトレを記録</div>
+    <div class="sheet-row">
+      <button class="sbtn push" data-tab="push">PUSH</button>
+      <button class="sbtn pull" data-tab="pull">PULL</button>
+      <button class="sbtn light" data-tab="light">軽め</button>
+    </div>
+    <button class="sbtn clear" data-tab="clear">この日の記録を消す</button>
+    <button class="sbtn close" id="sheetClose">閉じる</button>
   </div>
 </div>
 
@@ -211,15 +287,15 @@
 const W = {
   push:{
     ex:[
-      {n:"ダンベルベンチプレス", m:"胸", mc:"chest", s:"肩前・三頭も ・ 10回×3", w:18, c:"肩甲骨を寄せて胸を張る・肘を開きすぎない", f:"https://youtu.be/pctyhH_HYxc"},
       {n:"プッシュアップバー腕立て", m:"胸", mc:"chest", s:"三頭も ・ 限界まで×3", c:"体は一直線・深く下ろしすぎて肩を痛めない", f:"https://youtu.be/gOW7hO7TQRg"},
-      {n:"ダンベルショルダープレス", m:"肩", mc:"shoulder", s:"10回×3", w:10, c:"腰を反らない・重さより丁寧さ優先", f:"https://youtu.be/tp9RRXCvnko"},
-      {n:"トライセプスエクステンション", m:"三頭", mc:"triceps", s:"二の腕裏 ・ 10回×3", w:8, c:"肘を固定して開かない", f:"https://youtu.be/z4WI-XdAJBk"},
+      {n:"レッグレイズ", m:"腹", mc:"abs", s:"下腹 ・ 15回×3", c:"腰を床から浮かさない・反動を使わない", f:"https://youtu.be/C9xfentB4QA"},
       {n:"腹筋ローラー", m:"腹", mc:"abs", s:"お腹全体 ・ 膝コロ10回×3", c:"腰を反らない（反ると腰痛める）・膝コロから", f:"https://youtu.be/Y2ggqVV5Q1A"},
-      {n:"レッグレイズ", m:"腹", mc:"abs", s:"下腹 ・ 15回×3", c:"腰を床から浮かさない・反動を使わない", f:"https://youtu.be/C9xfentB4QA"}
+      {n:"ダンベルベンチプレス", m:"胸", mc:"chest", s:"肩前・三頭も ・ 10回×3", w:18, timer:true, c:"肩甲骨を寄せて胸を張る・肘を開きすぎない", f:"https://youtu.be/pctyhH_HYxc"},
+      {n:"ダンベルショルダープレス", m:"肩", mc:"shoulder", s:"10回×3", w:10, timer:true, c:"腰を反らない・重さより丁寧さ優先", f:"https://youtu.be/tp9RRXCvnko"},
+      {n:"トライセプスエクステンション", m:"三頭", mc:"triceps", s:"二の腕裏 ・ 10回×3", w:8, timer:true, c:"肘を固定して開かない", f:"https://youtu.be/z4WI-XdAJBk"}
     ],
     opt:[
-      {n:"ダンベルフライ", m:"胸", mc:"chest", s:"ストレッチ種目 ・ 12〜15回×3", w:10, tag:"任意", c:"肘は軽く曲げて固定・下ろしすぎない", f:"https://youtu.be/ls-cMaddd-4"},
+      {n:"ダンベルフライ", m:"胸", mc:"chest", s:"ストレッチ種目 ・ 12〜15回×3", w:10, timer:true, tag:"任意", c:"肘は軽く曲げて固定・下ろしすぎない", f:"https://youtu.be/ls-cMaddd-4"},
       {n:"ディップス", m:"胸", mc:"chest", s:"胸下部・三頭 ・ 限界×3", tag:"腰バー", tagType:"bar", c:"肩をすくめない・沈めすぎない", f:"https://youtu.be/4NtPyLcvigw", note:"腰の高さのバーを掴んで体を沈める。前傾で胸下部、脇を締めて三頭。上半身の高負荷種目"},
       {n:"ハンギングニーレイズ", m:"腹", mc:"abs", s:"下腹 ・ 15回×3", tag:"腰バー", tagType:"bar", c:"反動を使わずゆっくり", note:"腰バーで体を支え膝を上げる。床レッグレイズと差し替えOK"}
     ],
@@ -231,17 +307,18 @@ const W = {
   },
   pull:{
     ex:[
-      {n:"懸垂", m:"背中", mc:"back", s:"姿勢に最強 ・ できる回数×3", c:"反動を使わない・肩甲骨から引く", f:"https://youtu.be/leTIONGcVjs", note:"疲れる前の1種目目にやるのがコツ。回数出んくても気にせん、合計回数が増えてけばOK"},
-      {n:"ワンハンドダンベルロウ", m:"背中", mc:"back", s:"二頭も ・ 左右10回×3", w:18, c:"背中を丸めない・腕やなく背中で引く", f:"https://youtu.be/71NcdOwfMv8"},
-      {n:"ダンベルプルオーバー", m:"背中", mc:"back", s:"胸も ・ 10〜15回×3", w:13, u:"両手1個", c:"肘は軽く曲げて固定・重すぎ注意", f:"https://youtu.be/ygxQifjl2pQ"},
-      {n:"シュラッグ", m:"僧帽筋", mc:"traps", s:"首肩 ・ 15回×3", w:18, c:"肩を回さず真上にすくめる", f:"https://youtu.be/nlouGqRR-G8"},
-      {n:"ダンベルカール", m:"二頭", mc:"biceps", s:"力こぶ ・ 10回×3", w:8, c:"肘を体に固定・反動を使わない", f:"https://youtu.be/7sQ5izf39Gs"},
-      {n:"ハンマーカール", m:"二頭", mc:"biceps", s:"前腕も ・ 12回×3", w:8, c:"肘固定・体を振らない", f:"https://youtu.be/R9gZHq9o5b4"},
+      {n:"懸垂", m:"背中", mc:"back", s:"姿勢に最強 ・ できる回数×3", posture:true, c:"反動を使わない・肩甲骨から引く", f:"https://youtu.be/leTIONGcVjs", note:"疲れる前の1種目目にやるのがコツ。回数出んくても気にせん、合計回数が増えてけばOK"},
       {n:"ロシアンツイスト", m:"腹", mc:"abs", s:"脇腹 ・ 左右20回×3", w:8, u:"両手1個", c:"背中を丸めすぎない・ゆっくり捻る", f:"https://youtu.be/nYnn7WoWFQs"},
-      {n:"背中 自重3分（動画と一緒に）", m:"背中", mc:"back", s:"姿勢の締め ・ 動画1本ぶん", c:"最後のフィニッシャー。動画を流してそのままやる", f:"https://youtu.be/hj2j-RsUiSE"}
+      {n:"ワンハンドダンベルロウ", m:"背中", mc:"back", s:"二頭も ・ 左右10回×3", w:18, timer:true, posture:true, c:"背中を丸めない・腕やなく背中で引く", f:"https://youtu.be/71NcdOwfMv8"},
+      {n:"ダンベルプルオーバー", m:"背中", mc:"back", s:"胸も ・ 10〜15回×3", w:13, u:"両手1個", timer:true, c:"肘は軽く曲げて固定・重すぎ注意", f:"https://youtu.be/ygxQifjl2pQ"},
+      {n:"シュラッグ", m:"僧帽筋", mc:"traps", s:"首肩 ・ 15回×3", w:18, timer:true, c:"肩を回さず真上にすくめる", f:"https://youtu.be/nlouGqRR-G8"},
+      {n:"ダンベルカール", m:"二頭", mc:"biceps", s:"力こぶ ・ 10回×3", w:8, timer:true, c:"肘を体に固定・反動を使わない", f:"https://youtu.be/7sQ5izf39Gs"},
+      {n:"ハンマーカール", m:"二頭", mc:"biceps", s:"前腕も ・ 12回×3", w:8, timer:true, c:"肘固定・体を振らない", f:"https://youtu.be/R9gZHq9o5b4"},
+      {n:"ダンベルリアレイズ", m:"肩後", mc:"shoulder", s:"三角筋後部・巻き肩 ・ 15回×3", w:5, timer:true, posture:true, c:"肩甲骨を寄せない・軽めでフォーム優先・前傾キープ", f:"https://youtu.be/u6vxzIuOPYg", note:"巻き肩・猫背の本命。重さより効かせ重視、15回で限界くらいの軽さで。背中でなく肩の後ろで上げる"},
+      {n:"背中 自重3分（動画と一緒に）", m:"背中", mc:"back", s:"姿勢の締め ・ 動画1本ぶん", posture:true, c:"最後のフィニッシャー。動画を流してそのままやる", f:"https://youtu.be/hj2j-RsUiSE"}
     ],
     opt:[
-      {n:"斜め懸垂（インバーテッドロウ）", m:"背中", mc:"back", s:"姿勢 ・ 限界×3", tag:"腰バー", tagType:"bar", c:"体は一直線キープ", f:"https://youtu.be/43VhXUG8J-8", note:"懸垂で回数出んかった日の補助に。低いバーの下で体を斜めにして胸を引き寄せる"}
+      {n:"斜め懸垂（インバーテッドロウ）", m:"背中", mc:"back", s:"姿勢 ・ 限界×3", tag:"腰バー", tagType:"bar", posture:true, c:"体は一直線キープ", f:"https://youtu.be/43VhXUG8J-8", note:"懸垂で回数出んかった日の補助に。低いバーの下で体を斜めにして胸を引き寄せる"}
     ],
     vid:[
       {n:"背筋 6分 器具なし（床）", u:"https://youtu.be/Q-LGg-58_ZU"},
@@ -254,7 +331,8 @@ const W = {
       {n:"腹筋 2分 地獄メニュー", m:"腹", mc:"abs", s:"時間ない日はこっち", f:"https://youtu.be/R4vb8poJnv0"},
       {n:"レッグレイズ", m:"腹", mc:"abs", s:"下腹 ・ 15回×3", c:"腰を床から浮かさない", f:"https://youtu.be/C9xfentB4QA"},
       {n:"ロシアンツイスト", m:"腹", mc:"abs", s:"脇腹 ・ 左右20回（ダンベルなしでOK）", f:"https://youtu.be/nYnn7WoWFQs"},
-      {n:"背中 自重3分（軽く）", m:"背中", mc:"back", s:"血流を流して回復を早める", c:"痛い部位は無理せんこと", f:"https://youtu.be/hj2j-RsUiSE"}
+      {n:"背中 自重3分（軽く）", m:"背中", mc:"back", s:"血流を流して回復を早める", c:"痛い部位は無理せんこと", f:"https://youtu.be/hj2j-RsUiSE"},
+      {n:"胸ドアストレッチ", m:"胸", mc:"chest", s:"大胸筋ほぐし ・ 左右30秒ずつ", posture:true, c:"痛くない範囲で・呼吸を止めない", f:"https://youtu.be/JgkRrdUqM2c", note:"固まった胸をゆるめて巻き肩をリセット。ドア枠や壁の角に肘をあて、体を前に入れて伸ばす"}
     ],
     opt:[
       {n:"散歩・ストレッチ 10分", m:"回復", mc:"", s:"体を軽く動かすだけの日もアリ", tag:"任意", note:"筋肉痛の日は休むのが正解。軽く動かすと回復が早まる。これだけでも記録してOK、ゼロじゃないことが大事"}
@@ -329,6 +407,76 @@ function suggest(){
 }
 function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;
   t.classList.add("show");setTimeout(()=>t.classList.remove("show"),3400);}
+const vidId=u=>{try{return u.split("youtu.be/")[1].split(/[?&]/)[0]}catch(e){return""}};
+
+/* ===== inline video embed (1本ずつ) ===== */
+let curEmbed=null, curTrigger=null;
+function closeEmbed(){
+  if(curEmbed){curEmbed.remove();curEmbed=null;}
+  if(curTrigger){curTrigger.classList.remove("playing");curTrigger=null;}
+}
+function toggleEmbed(cardEl, url, trigger){
+  const id=vidId(url); if(!id)return;
+  const next=cardEl.nextElementSibling;
+  if(next&&next.classList.contains("embed")&&next.dataset.for===id){closeEmbed();return;}
+  closeEmbed();
+  const w=document.createElement("div");
+  w.className="embed";w.dataset.for=id;
+  w.innerHTML=`<iframe src="https://www.youtube.com/embed/${id}?rel=0&playsinline=1&autoplay=1" title="動画" allow="accelerometer;autoplay;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>`;
+  cardEl.after(w);curEmbed=w;
+  if(trigger){trigger.classList.add("playing");curTrigger=trigger;}
+}
+
+/* ===== rest timer (Web Audio, iOS-safe) ===== */
+let actx=null, timerIv=null;
+function ensureAudio(){
+  try{
+    if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==="suspended")actx.resume();
+    const b=actx.createBuffer(1,1,22050);const s=actx.createBufferSource();
+    s.buffer=b;s.connect(actx.destination);s.start(0);
+  }catch(e){}
+}
+function beep(){
+  if(!actx)return;
+  [0,0.2,0.4].forEach(t=>{
+    const o=actx.createOscillator(),g=actx.createGain(),now=actx.currentTime+t;
+    o.type="sine";o.frequency.value=t<0.4?880:1170;
+    g.gain.setValueAtTime(0.0001,now);
+    g.gain.exponentialRampToValueAtTime(0.4,now+0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001,now+0.16);
+    o.connect(g);g.connect(actx.destination);o.start(now);o.stop(now+0.17);
+  });
+}
+function clearTimer(){if(timerIv){clearInterval(timerIv);timerIv=null;}}
+const fmt=s=>Math.floor(s/60)+":"+String(s%60).padStart(2,"0");
+function openChips(zone){
+  clearTimer();
+  zone.innerHTML=`<div class="tchips"><span class="tlbl">休憩</span>`+
+    [60,90,120].map(s=>`<button class="tchip" data-s="${s}">${s}秒</button>`).join("")+
+    `<button class="tchip x" data-s="0">閉じる</button></div>`;
+  zone.querySelectorAll(".tchip").forEach(b=>b.addEventListener("click",ev=>{
+    ev.stopPropagation();const s=+b.dataset.s;
+    if(s===0){zone.innerHTML="";}else startTimer(s,zone);
+  }));
+}
+function startTimer(sec, zone){
+  ensureAudio();clearTimer();
+  let remain=sec;
+  zone.innerHTML=`<div class="trun"><span class="tnum">${fmt(remain)}</span><button class="tstop">やめる</button></div>`;
+  const numEl=zone.querySelector(".tnum");
+  zone.querySelector(".tstop").addEventListener("click",ev=>{ev.stopPropagation();openChips(zone);});
+  timerIv=setInterval(()=>{
+    remain--;
+    if(remain<=0){
+      clearTimer();beep();
+      zone.innerHTML=`<div class="tdone">休憩おわり ✓<button class="tnext">もう1セット ▶</button></div>`;
+      zone.querySelector(".tnext").addEventListener("click",ev=>{ev.stopPropagation();openChips(zone);});
+      return;
+    }
+    numEl.textContent=fmt(remain);
+  },1000);
+}
 
 let day="push";
 
@@ -343,12 +491,13 @@ function rowEx(e,key,opt){
   const ws=gj("k.w",{}); const wv=(ws[e.n]!=null)?ws[e.n]:e.w;
   el.innerHTML=`<div class="box"></div>
     ${e.mc?`<div class="anat">${bodySVG(e.mc)}<span class="side">${BACKV[e.mc]?"後":"前"}</span></div>`:""}
-    <div class="body"><div class="name">${e.m?`<span class="mtag" style="background:${col}">${e.m}</span>`:""}${e.n}${e.tag?`<span class="badge${e.tagType==='bar'?' bar':''}">${e.tag}</span>`:""}</div>
+    <div class="body"><div class="name">${e.m?`<span class="mtag" style="background:${col}">${e.m}</span>`:""}${e.n}${e.tag?`<span class="badge${e.tagType==='bar'?' bar':''}">${e.tag}</span>`:""}${e.posture?`<span class="badge pose">🧍姿勢</span>`:""}</div>
     <div class="sub">${e.s}</div>
     ${e.c?`<div class="care">⚠ ${e.c}</div>`:""}
-    ${e.w!=null?`<div class="wctl"><button class="wbtn" data-op="-" aria-label="重さを減らす">−</button><span class="wval"><span class="wnum">${wv}</span><small>kg</small></span><button class="wbtn" data-op="+" aria-label="重さを増やす">＋</button><span class="wnote">${e.u||"片手"}</span></div>`:""}
+    ${e.w!=null?`<div class="wctl"><button class="wbtn" data-op="-" aria-label="重さを減らす">−</button><span class="wval"><span class="wnum">${wv}</span><small>kg</small></span><button class="wbtn" data-op="+" aria-label="重さを増やす">＋</button><span class="wnote">${e.u||"片手"}</span>${e.timer?`<button class="tbtn" data-timer>⏱ 休憩</button>`:""}</div>`:(e.timer?`<div class="wctl"><button class="tbtn" data-timer>⏱ 休憩タイマー</button></div>`:"")}
+    ${e.timer?`<div class="tzone"></div>`:""}
     </div>
-    ${e.f?`<a class="howto" href="${e.f}" target="_blank" rel="noopener">解説 ▷</a>`:""}`;
+    ${e.f?`<button class="howto">▶ 見ながら</button>`:""}`;
   const toggle=()=>{
     const ds=DAYS(),td=today();
     ds[td]=ds[td]||{};const c=ds[td][day]=ds[td][day]||{};
@@ -359,19 +508,27 @@ function rowEx(e,key,opt){
     renderCal();
     if(before<2&&lvOf(day,c)===2)showToast(`${NAME[day]} 全種目クリア ✓  今週${week()}日目`);
   };
-  el.addEventListener("click",ev=>{if(ev.target.closest(".howto")||ev.target.closest(".wctl"))return;toggle();});
+  el.addEventListener("click",ev=>{
+    if(ev.target.closest(".howto")||ev.target.closest(".wctl")||ev.target.closest(".tzone"))return;
+    toggle();
+  });
   const wc=el.querySelector(".wctl");
-  if(wc){wc.addEventListener("click",ev=>{ev.stopPropagation();
+  if(wc)wc.addEventListener("click",ev=>{ev.stopPropagation();
+    const tb=ev.target.closest("[data-timer]");
+    if(tb){const z=el.querySelector(".tzone");if(z){if(z.innerHTML)z.innerHTML="";else openChips(z);}return;}
     const b=ev.target.closest(".wbtn");if(!b)return;
     const m=gj("k.w",{});let v=(m[e.n]!=null)?m[e.n]:e.w;
     v=Math.max(1,v+(b.dataset.op==="+"?1:-1));m[e.n]=v;sj("k.w",m);
-    el.querySelector(".wnum").textContent=v;});}
+    el.querySelector(".wnum").textContent=v;});
+  const tz=el.querySelector(".tzone");
+  if(tz)tz.addEventListener("click",ev=>ev.stopPropagation());
   el.addEventListener("keydown",ev=>{if(ev.target===el&&(ev.key===" "||ev.key==="Enter")){ev.preventDefault();toggle();}});
   const ht=el.querySelector(".howto");
-  if(ht)ht.addEventListener("click",ev=>ev.stopPropagation());
+  if(ht)ht.addEventListener("click",ev=>{ev.stopPropagation();toggleEmbed(el,e.f,ht);});
   return el;
 }
 function render(){
+  closeEmbed();clearTimer();
   document.querySelectorAll(".tab").forEach(t=>t.setAttribute("aria-selected",t.dataset.day===day));
   const w=W[day], list=document.getElementById("list");
   list.innerHTML="";
@@ -380,9 +537,10 @@ function render(){
     if(e.note){const n=document.createElement("div");n.className="note";n.textContent=e.note;list.appendChild(n);}});
   const vids=document.getElementById("videos");
   vids.innerHTML="";
-  w.vid.forEach(v=>{const a=document.createElement("a");a.className="vid";a.href=v.u;a.target="_blank";a.rel="noopener";
-    a.innerHTML=`<div class="pl">▶</div><div><div class="vn">${v.n}${v.want?'<span class="want">★やりたい</span>':""}</div><div class="vt">YouTube</div></div>`;
-    vids.appendChild(a);});
+  w.vid.forEach(v=>{const d=document.createElement("div");d.className="vid";
+    d.innerHTML=`<div class="pl">▶</div><div><div class="vn">${v.n}${v.want?'<span class="want">★やりたい</span>':""}</div><div class="vt">タップでその場再生</div></div>`;
+    d.addEventListener("click",()=>toggleEmbed(d,v.u,d));
+    vids.appendChild(d);});
   const vs=document.getElementById("vidSec");
   vs.style.display=w.vid.length?"":"none";vids.style.display=w.vid.length?"":"none";
   const rec=suggest();
@@ -415,12 +573,52 @@ function renderCal(){
     if(dow===6)cls+=" sat";else if(dow===0)cls+=" sun";
     if(kind)cls+=" done "+kind+(t[kind]===1?" pt":"");
     if(key===td)cls+=" today";
-    html+=`<div class="${cls}">${d}</div>`;
+    const tappable=key<=td;
+    if(tappable)cls+=" tap";
+    html+=`<div class="${cls}"${tappable?` data-date="${key}"`:""}>${d}</div>`;
   }
   document.getElementById("calGrid").innerHTML=html;
+  document.querySelectorAll("#calGrid .cal-cell.tap").forEach(c=>{
+    c.addEventListener("click",()=>openSheet(c.dataset.date));
+  });
 }
 document.getElementById("calPrev").addEventListener("click",()=>{calM--;if(calM<0){calM=11;calY--;}renderCal();});
 document.getElementById("calNext").addEventListener("click",()=>{calM++;if(calM>11){calM=0;calY++;}renderCal();});
+
+/* ===== calendar input sheet ===== */
+let sheetDate=null;
+function openSheet(date){
+  sheetDate=date;
+  const [y,m,dd]=date.split("-");
+  const dow=["日","月","火","水","木","金","土"][new Date(date+"T00:00:00").getDay()];
+  document.getElementById("sheetTtl").textContent=`${+m}月${+dd}日（${dow}）`;
+  document.getElementById("sheetBg").classList.add("show");
+  document.getElementById("sheet").classList.add("show");
+}
+function closeSheet(){
+  document.getElementById("sheetBg").classList.remove("show");
+  document.getElementById("sheet").classList.remove("show");
+  sheetDate=null;
+}
+function setDay(date,tab){
+  const ds=DAYS();ds[date]=ds[date]||{};
+  const full={};W[tab].ex.forEach((_,i)=>full["e"+i]=true);
+  ds[date][tab]=full;sj("k.days",ds);
+  renderCal();render();
+}
+function clearDayRec(date){
+  const ds=DAYS();if(ds[date]){delete ds[date];sj("k.days",ds);}
+  renderCal();render();
+}
+document.querySelectorAll("#sheet .sbtn[data-tab]").forEach(b=>b.addEventListener("click",()=>{
+  const tab=b.dataset.tab,date=sheetDate;
+  if(!date){closeSheet();return;}
+  if(tab==="clear"){clearDayRec(date);showToast(`${date.slice(5)} の記録を消した`);}
+  else{setDay(date,tab);showToast(`${date.slice(5)} を ${NAME[tab]} で記録 ✓`);}
+  closeSheet();
+}));
+document.getElementById("sheetClose").addEventListener("click",closeSheet);
+document.getElementById("sheetBg").addEventListener("click",closeSheet);
 
 /* ===== init ===== */
 (function(){
