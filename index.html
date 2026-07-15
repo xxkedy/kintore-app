@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>kedy / TRAINING</title>
+<title>Gainz</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="筋トレ">
+<meta name="apple-mobile-web-app-title" content="Gainz">
 <meta name="theme-color" content="#0a0a0c">
 <link rel="apple-touch-icon" href="/icon-180.png">
 <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
@@ -294,7 +294,7 @@
 <body>
 <div class="wrap">
   <div class="brand">kedy — home training</div>
-  <div class="h1">WORKOUT<span>.</span></div>
+  <div class="h1">Gainz<span>.</span></div>
   <div class="today" id="today"></div>
 
   <div class="tabs" role="tablist">
@@ -349,7 +349,7 @@
   <div class="foot">
     チェックした瞬間に自動保存。完了ボタンは無し＝押し忘れゼロ。<br>
     重さは前回より少しでも増やせたら勝ち。記録はこの端末に保存される。
-    <div class="ver">kedy training · v13</div>
+    <div class="ver">Gainz v14 · 2026.07.15</div>
   </div>
 </div>
 
@@ -822,7 +822,7 @@ function addMemo(){
   const a=MEMO();a.push({d:today().slice(5).replace("-","/"),t});
   sj("k.memo",a);inp.value="";inp.blur();renderMemo();showToast("メモ追加 ✓");
 }
-const memoText=()=>"【筋トレPWA 改善メモ】以下を改良して：\n"+MEMO().map(m=>`・${m.d} ${m.t}`).join("\n");
+const memoText=()=>"【Gainz 改善メモ】以下を改良して：\n"+MEMO().map(m=>`・${m.d} ${m.t}`).join("\n");
 async function copyMemo(){
   const a=MEMO();
   if(!a.length){showToast("メモが空っぽ");return;}
