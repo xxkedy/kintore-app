@@ -40,6 +40,26 @@
   .h1 span{color:var(--accent)}
   .today{font-size:13px;color:var(--sub);margin-top:8px}
 
+  /* one-tap 30 minute workout */
+  .quick{margin:18px 0 16px;padding:17px;background:linear-gradient(145deg,#171527,#111116 62%);
+    border:1.5px solid #3d356e;border-radius:16px;box-shadow:0 10px 28px rgba(0,0,0,.18)}
+  .quick-kicker{font-size:10px;font-weight:800;letter-spacing:.15em;color:var(--accent2);text-transform:uppercase}
+  .quick-title{font-size:20px;font-weight:800;letter-spacing:-.01em;margin-top:4px}
+  .quick-sub{font-size:12.5px;color:var(--sub);line-height:1.55;margin:5px 0 13px}
+  .session-start{width:100%;border:none;border-radius:12px;padding:15px 12px;background:var(--accent);color:#fff;
+    font-size:15px;font-weight:800;font-family:inherit;line-height:1.2;cursor:pointer;box-shadow:0 7px 20px rgba(109,92,255,.25)}
+  .session-start:active{transform:scale(.99);background:var(--accent2)}
+  .session-start:focus-visible{outline:2px solid #fff;outline-offset:3px}
+  .session-panel[hidden]{display:none}
+  .session-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px}
+  .session-label{font-size:10px;font-weight:800;letter-spacing:.14em;color:var(--sub);text-transform:uppercase}
+  .session-clock{font-size:34px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.02em;margin-top:4px}
+  .session-stop{border:1.5px solid var(--line);background:var(--card2);color:var(--sub);border-radius:10px;
+    padding:9px 13px;font-size:12px;font-weight:700;font-family:inherit;line-height:1;cursor:pointer}
+  .session-video{overflow:hidden;border:1px solid var(--accent);border-radius:12px;background:#000;aspect-ratio:16/9}
+  .session-video iframe{width:100%;height:100%;display:block;border:0}
+  .session-note{font-size:11.5px;color:var(--sub);margin-top:9px}
+
   /* day tabs */
   .tabs{display:flex;gap:8px;margin:22px 0 14px}
   .tab{flex:1;padding:15px 10px;border:1.5px solid var(--line);border-radius:14px;background:var(--card);
@@ -297,6 +317,24 @@
   <div class="h1">Gainz<span>.</span></div>
   <div class="today" id="today"></div>
 
+  <section class="quick" aria-labelledby="quickTitle">
+    <div class="quick-kicker">Quick start</div>
+    <div class="quick-title" id="quickTitle">懸垂・背中から30分</div>
+    <div class="quick-sub">最初は好きな背中動画を3分33秒。0:30から始まり4:03で止まる。その後も30分タイマーは続く。</div>
+    <button class="session-start" id="sessionStart" type="button">▶ 30分トレーニング開始</button>
+    <div class="session-panel" id="sessionPanel" hidden>
+      <div class="session-top">
+        <div>
+          <div class="session-label">残り時間</div>
+          <div class="session-clock" id="sessionClock" role="timer" aria-live="polite">30:00</div>
+        </div>
+        <button class="session-stop" id="sessionStop" type="button">終了</button>
+      </div>
+      <div class="session-video" id="sessionVideo"></div>
+      <div class="session-note" id="sessionNote">動画が終わっても、残り時間はそのまま継続する。</div>
+    </div>
+  </section>
+
   <div class="tabs" role="tablist">
     <button class="tab" role="tab" data-day="push"><span class="n">PUSH日<span class="rec">おすすめ</span></span><span class="m">胸·肩·三頭·腹</span></button>
     <button class="tab" role="tab" data-day="pull"><span class="n">PULL日<span class="rec">おすすめ</span></span><span class="m">背中·二頭·腹</span></button>
@@ -349,7 +387,7 @@
   <div class="foot">
     チェックした瞬間に自動保存。完了ボタンは無し＝押し忘れゼロ。<br>
     重さは前回より少しでも増やせたら勝ち。記録はこの端末に保存される。
-    <div class="ver">Gainz v14 · 2026.07.15</div>
+    <div class="ver">Gainz v15 · 2026.07.22</div>
   </div>
 </div>
 
@@ -606,6 +644,48 @@ function startTimer(sec, zone){
   },1000);
 }
 
+/* ===== 30 minute workout session (independent from video/rest timer) ===== */
+const SESSION_SECONDS=30*60;
+const SESSION_VIDEO_ID="hj2j-RsUiSE";
+const SESSION_KEY="k.sessionEnd";
+let sessionIv=null;
+function sessionEnd(){return Number(S.get(SESSION_KEY)||0)}
+function sessionVideoHtml(autoplay){
+  return `<iframe src="https://www.youtube.com/embed/${SESSION_VIDEO_ID}?start=30&end=243&rel=0&playsinline=1&autoplay=${autoplay?1:0}" title="懸垂・背中トレーニング動画" allow="accelerometer;autoplay;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>`;
+}
+function clearSessionInterval(){if(sessionIv){clearInterval(sessionIv);sessionIv=null;}}
+function resetSession(showMessage){
+  clearSessionInterval();S.set(SESSION_KEY,"0");
+  document.getElementById("sessionPanel").hidden=true;
+  document.getElementById("sessionVideo").innerHTML="";
+  document.getElementById("sessionStart").hidden=false;
+  document.getElementById("sessionStart").textContent="▶ 30分トレーニング開始";
+  if(showMessage)showToast("30分トレーニングを終了");
+}
+function updateSessionClock(){
+  const remain=Math.max(0,Math.ceil((sessionEnd()-Date.now())/1000));
+  document.getElementById("sessionClock").textContent=fmt(remain);
+  if(remain>0)return;
+  clearSessionInterval();S.set(SESSION_KEY,"0");beep();
+  document.getElementById("sessionNote").textContent="30分完了 ✓";
+  document.getElementById("sessionVideo").innerHTML="";
+  document.getElementById("sessionStart").hidden=false;
+  document.getElementById("sessionStart").textContent="▶ もう一度30分";
+  showToast("30分完了 ✓");
+}
+function showSession(autoplay){
+  document.getElementById("sessionStart").hidden=true;
+  document.getElementById("sessionPanel").hidden=false;
+  document.getElementById("sessionNote").textContent="動画が終わっても、残り時間はそのまま継続する。";
+  document.getElementById("sessionVideo").innerHTML=sessionVideoHtml(autoplay);
+  clearSessionInterval();updateSessionClock();
+  if(sessionEnd()>Date.now())sessionIv=setInterval(updateSessionClock,1000);
+}
+function startSession(){
+  ensureAudio();S.set(SESSION_KEY,String(Date.now()+SESSION_SECONDS*1000));
+  showSession(true);
+}
+
 let day="push";
 
 /* ===== render ===== */
@@ -691,6 +771,8 @@ function render(){
 
 /* ===== events ===== */
 document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>{day=t.dataset.day;render();}));
+document.getElementById("sessionStart").addEventListener("click",startSession);
+document.getElementById("sessionStop").addEventListener("click",()=>resetSession(true));
 
 /* ===== calendar ===== */
 let calY,calM;
@@ -860,7 +942,8 @@ document.getElementById("memoCopy").addEventListener("click",copyMemo);
   document.getElementById("today").textContent=today().replace(/-/g,".")+`（${wd}）`;
   calY=d.getFullYear();calM=d.getMonth();
   day=suggest();
-  render();renderCal();renderMemo();})();
+  render();renderCal();renderMemo();
+  if(sessionEnd()>Date.now())showSession(false);else S.set(SESSION_KEY,"0");})();
 </script>
 </body>
 </html>
